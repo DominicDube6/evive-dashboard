@@ -241,7 +241,7 @@
                     </div>
                     <div class="text-center text-sm" style="color: var(--text-muted);">
                         <span class="font-bold" style="color: var(--text-primary);" data-kpi="utilizationRate2">76.4%</span> d'utilisation
-                        <span data-credit-date" class="block text-xs mt-1">Données les plus récentes</span>
+                        <span data-credit-date class="block text-xs mt-1">Données les plus récentes</span>
                     </div>
                 </div>
             </div>
@@ -297,7 +297,7 @@
                         <span class="text-2xl">💰</span>
                     </div>
                     <div class="text-3xl font-bold text-gray-900 mb-1">80$</div>
-                    <div class="text-sm text-red-600 font-medium" data-ncac-performance">Calculating...</div>
+                    <div class="text-sm text-red-600 font-medium" id="ncac-performance">Calculating...</div>
                 </div>
             </div>
 
@@ -843,63 +843,83 @@
             var filteredCashflow = filterDataByDateRange(data.cashflow && data.cashflow.daily, currentStartDate, currentEndDate);
             var filteredOperations = filterDataByDateRange(data.operations && data.operations.daily, currentStartDate, currentEndDate);
 
-        if (filteredDTC.length > 0) {
-    var totalProfit = sumArrayValues(filteredDTC, 'profit');
-    var avgDiscount = filteredDTC.reduce(function(sum, item) { 
-        return sum + ((item.discount || 0) * 100); 
-    }, 0) / filteredDTC.length;
-    
-    // Debug nCAC calculation
-    console.log('Filtered DTC data:', filteredDTC);
-    var ncacSum = filteredDTC.reduce(function(sum, item) { 
-        console.log('nCAC value for', item.date, ':', item.nCAC);
-        return sum + (item.nCAC || 0); 
-    }, 0);
-    var avgNCAC = ncacSum / filteredDTC.length;
-    console.log('Average nCAC calculated:', avgNCAC);
-    
-    var maxSales = Math.max.apply(Math, filteredDTC.map(function(item) { 
-        return item.netSales || 0; 
-    }));
-    var maxIndex = filteredDTC.findIndex(function(item) { 
-        return item.netSales === maxSales; 
-    });
-    var bestDay = maxIndex >= 0 ? filteredDTC[maxIndex].date : '';
+            if (filteredDTC.length > 0) {
+                var totalProfit = sumArrayValues(filteredDTC, 'profit');
+                var avgDiscount = filteredDTC.reduce(function(sum, item) { 
+                    return sum + ((item.discount || 0) * 100); 
+                }, 0) / filteredDTC.length;
+                
+                // Debug nCAC calculation
+                console.log('Filtered DTC data:', filteredDTC);
+                var ncacSum = filteredDTC.reduce(function(sum, item) { 
+                    console.log('nCAC value for', item.date, ':', item.nCAC);
+                    return sum + (item.nCAC || 0); 
+                }, 0);
+                var avgNCAC = ncacSum / filteredDTC.length;
+                console.log('Average nCAC calculated:', avgNCAC);
+                
+                var maxSales = Math.max.apply(Math, filteredDTC.map(function(item) { 
+                    return item.netSales || 0; 
+                }));
+                var maxIndex = filteredDTC.findIndex(function(item) { 
+                    return item.netSales === maxSales; 
+                });
+                var bestDay = maxIndex >= 0 ? filteredDTC[maxIndex].date : '';
 
-    var profitEl = document.querySelector('[data-kpi="weekProfit"] .text-3xl');
-    if (profitEl) profitEl.textContent = Math.round(totalProfit / 1000) + 'k$';
+                var profitEl = document.querySelector('[data-kpi="weekProfit"] .text-3xl');
+                if (profitEl) profitEl.textContent = Math.round(totalProfit / 1000) + 'k$';
 
-    var bestAmountEl = document.querySelector('[data-best-amount]');
-    if (bestAmountEl) bestAmountEl.textContent = Math.round(maxSales / 1000) + 'k$';
+                var bestAmountEl = document.querySelector('[data-best-amount]');
+                if (bestAmountEl) bestAmountEl.textContent = Math.round(maxSales / 1000) + 'k$';
 
-    var bestDayEl = document.querySelector('[data-best-day]');
-    if (bestDayEl) bestDayEl.textContent = bestDay;
+                var bestDayEl = document.querySelector('[data-best-day]');
+                if (bestDayEl) bestDayEl.textContent = bestDay;
 
-    var discountEl = document.querySelector('[data-kpi="avgDiscount"] .text-3xl');
-    if (discountEl) discountEl.textContent = Math.round(avgDiscount) + '%';
+                var discountEl = document.querySelector('[data-kpi="avgDiscount"] .text-3xl');
+                if (discountEl) discountEl.textContent = Math.round(avgDiscount) + '%';
 
-    var ncacEl = document.querySelector('[data-kpi="avgNCAC"] .text-3xl');
-    if (ncacEl) ncacEl.textContent = Math.round(avgNCAC) + '$';
-    
-    // Fixed nCAC performance calculation
-    var ncacTarget = 60;
-    var ncacPerformance = Math.round(((avgNCAC - ncacTarget) / ncacTarget) * 100);
-    console.log('nCAC performance calculated:', ncacPerformance, '% (avgNCAC:', avgNCAC, ', target:', ncacTarget, ')');
-    
-    var ncacPerformanceEl = document.querySelector('[data-ncac-performance]');
-    if (ncacPerformanceEl) {
-        if (avgNCAC > ncacTarget) {
-            ncacPerformanceEl.textContent = '+' + ncacPerformance + '% au-dessus du target';
-            ncacPerformanceEl.className = 'text-sm text-red-600 font-medium';
-        } else {
-            ncacPerformanceEl.textContent = Math.abs(ncacPerformance) + '% en-dessous du target';
-            ncacPerformanceEl.className = 'text-sm text-green-600 font-medium';
-        }
-        console.log('Updated nCAC performance text to:', ncacPerformanceEl.textContent);
-    } else {
-        console.log('Could not find nCAC performance element');
-    }
-}
+                var ncacEl = document.querySelector('[data-kpi="avgNCAC"] .text-3xl');
+                if (ncacEl) ncacEl.textContent = Math.round(avgNCAC) + '$';
+                
+                // Fixed nCAC performance calculation with proper element selection
+                var ncacTarget = 60;
+                var ncacPerformance = Math.round(((avgNCAC - ncacTarget) / ncacTarget) * 100);
+                console.log('nCAC performance calculated:', ncacPerformance, '% (avgNCAC:', avgNCAC, ', target:', ncacTarget, ')');
+                
+                // Use the ID selector instead of data attribute
+                var ncacPerformanceEl = document.getElementById('ncac-performance');
+                console.log('Looking for element with ID ncac-performance:', ncacPerformanceEl);
+                
+                if (ncacPerformanceEl) {
+                    if (avgNCAC > ncacTarget) {
+                        ncacPerformanceEl.textContent = '+' + ncacPerformance + '% au-dessus du target';
+                        ncacPerformanceEl.className = 'text-sm text-red-600 font-medium';
+                    } else {
+                        ncacPerformanceEl.textContent = Math.abs(ncacPerformance) + '% en-dessous du target';
+                        ncacPerformanceEl.className = 'text-sm text-green-600 font-medium';
+                    }
+                    console.log('Updated nCAC performance text to:', ncacPerformanceEl.textContent);
+                } else {
+                    console.log('Could not find nCAC performance element with ID ncac-performance');
+                    
+                    // Try alternative selectors as fallback
+                    var altEl = document.querySelector('.text-sm.text-red-600.font-medium');
+                    console.log('Trying alternative selector:', altEl);
+                    
+                    var altEl2 = document.querySelector('[data-kpi="avgNCAC"] .text-sm');
+                    console.log('Trying avgNCAC card selector:', altEl2);
+                }
+                
+                // Also update the card class based on performance
+                var ncacCard = document.querySelector('[data-kpi="avgNCAC"]');
+                if (ncacCard) {
+                    if (avgNCAC > ncacTarget) {
+                        ncacCard.className = 'kpi-card p-4 negative';
+                    } else {
+                        ncacCard.className = 'kpi-card p-4 positive';
+                    }
+                }
+            }
 
             var netSubChange = 0;
             if (filteredKlaviyo.length > 0) {
@@ -1088,84 +1108,4 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        x: { display: false },
-                        y: { 
-                            display: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return Math.round(value / 1000) + 'k$';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function createSalesChart(dtc) {
-            var ctx = document.getElementById('salesChart');
-            if (!ctx) return;
-
-            salesChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: dtc.dates,
-                    datasets: [{
-                        label: 'Net Sales',
-                        data: dtc.netSales,
-                        borderColor: '#3B82F6',
-                        borderWidth: 3
-                    }, {
-                        label: 'Profit',
-                        data: dtc.profit,
-                        borderColor: '#EF4444',
-                        borderWidth: 3,
-                        yAxisID: 'y1'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { position: 'left' },
-                        y1: { position: 'right', grid: { drawOnChartArea: false } }
-                    }
-                }
-            });
-        }
-
-        function createNcacChart(dtc) {
-            var ctx = document.getElementById('ncacChart');
-            if (!ctx) return;
-
-            ncacChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: dtc.dates,
-                    datasets: [{
-                        label: 'nCAC',
-                        data: dtc.nCAC,
-                        borderColor: '#F59E0B',
-                        borderWidth: 3
-                    }, {
-                        label: 'Target 60$',
-                        data: new Array(dtc.dates.length).fill(60),
-                        borderColor: '#10B981',
-                        borderWidth: 2,
-                        borderDash: [5, 5]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-        }
-    </script>
-</body>
-</html>
+                    maintain
