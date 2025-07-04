@@ -653,10 +653,8 @@
         });
 
         function setupDraftInteractions() {
-            // Add event listeners for draft sections
             document.getElementById('operationsProduct').addEventListener('change', function() {
                 if (this.value) {
-                    // Simulate data update for selected product
                     updateOperationsKPIs(this.value);
                 }
             });
@@ -681,28 +679,21 @@
         }
 
         function updateOperationsKPIs(product) {
-            // Simulate different inventory levels based on product
             var inventoryData = {
                 'asana-cad': { cases: 1247, weeks: 8.4 },
                 'yogi-cad': { cases: 890, weeks: 6.2 },
                 'frappe-fraise-cad': { cases: 1560, weeks: 11.3 }
-                // Add more products as needed
             };
 
             var data = inventoryData[product] || { cases: 1000, weeks: 7.5 };
-            
-            // Update inventory display
-            var inventoryEl = document.querySelector('.kpi-card.draft .text-3xl:contains("1,247")');
-            // Note: This is simplified - in reality you'd need proper selectors
+            console.log('Updating operations for:', product, data);
         }
 
         function updateRetailCanadaKPIs(product, banner) {
-            // Simulate retail data updates
             console.log('Updating Retail Canada for:', product, banner);
         }
 
         function updateRetailUSAKPIs(product) {
-            // Simulate retail USA data updates
             console.log('Updating Retail USA for:', product);
         }
 
@@ -746,6 +737,18 @@
                         availableCredit: 395000,
                         utilizationRate: 0.764
                     }
+                },
+                klaviyo: {
+                    daily: [
+                        { date: '2025-06-30', campaignSent: 200, campaignOrders: 22, flowSent: 2000, flowOrders: 20, newSubscribers: 150 },
+                        { date: '2025-07-01', campaignSent: 223, campaignOrders: 26, flowSent: 2311, flowOrders: 28, newSubscribers: 182 }
+                    ]
+                },
+                operations: {
+                    daily: [
+                        { date: '2025-06-30', boxShipped: 120, badBoxes: 5, cancelRequests: 70 },
+                        { date: '2025-07-01', boxShipped: 135, badBoxes: 3, cancelRequests: 76 }
+                    ]
                 }
             };
             setDefaultDateRange();
@@ -849,14 +852,10 @@
                     return sum + ((item.discount || 0) * 100); 
                 }, 0) / filteredDTC.length;
                 
-                // Debug nCAC calculation
-                console.log('Filtered DTC data:', filteredDTC);
                 var ncacSum = filteredDTC.reduce(function(sum, item) { 
-                    console.log('nCAC value for', item.date, ':', item.nCAC);
                     return sum + (item.nCAC || 0); 
                 }, 0);
                 var avgNCAC = ncacSum / filteredDTC.length;
-                console.log('Average nCAC calculated:', avgNCAC);
                 
                 var maxSales = Math.max.apply(Math, filteredDTC.map(function(item) { 
                     return item.netSales || 0; 
@@ -881,15 +880,10 @@
                 var ncacEl = document.querySelector('[data-kpi="avgNCAC"] .text-3xl');
                 if (ncacEl) ncacEl.textContent = Math.round(avgNCAC) + '$';
                 
-                // Fixed nCAC performance calculation with proper element selection
                 var ncacTarget = 60;
                 var ncacPerformance = Math.round(((avgNCAC - ncacTarget) / ncacTarget) * 100);
-                console.log('nCAC performance calculated:', ncacPerformance, '% (avgNCAC:', avgNCAC, ', target:', ncacTarget, ')');
                 
-                // Use the ID selector instead of data attribute
                 var ncacPerformanceEl = document.getElementById('ncac-performance');
-                console.log('Looking for element with ID ncac-performance:', ncacPerformanceEl);
-                
                 if (ncacPerformanceEl) {
                     if (avgNCAC > ncacTarget) {
                         ncacPerformanceEl.textContent = '+' + ncacPerformance + '% au-dessus du target';
@@ -898,19 +892,8 @@
                         ncacPerformanceEl.textContent = Math.abs(ncacPerformance) + '% en-dessous du target';
                         ncacPerformanceEl.className = 'text-sm text-green-600 font-medium';
                     }
-                    console.log('Updated nCAC performance text to:', ncacPerformanceEl.textContent);
-                } else {
-                    console.log('Could not find nCAC performance element with ID ncac-performance');
-                    
-                    // Try alternative selectors as fallback
-                    var altEl = document.querySelector('.text-sm.text-red-600.font-medium');
-                    console.log('Trying alternative selector:', altEl);
-                    
-                    var altEl2 = document.querySelector('[data-kpi="avgNCAC"] .text-sm');
-                    console.log('Trying avgNCAC card selector:', altEl2);
                 }
                 
-                // Also update the card class based on performance
                 var ncacCard = document.querySelector('[data-kpi="avgNCAC"]');
                 if (ncacCard) {
                     if (avgNCAC > ncacTarget) {
@@ -1108,4 +1091,36 @@
                 },
                 options: {
                     responsive: true,
-                    maintain
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value >= 1000 ? (value / 1000) + 'k$' : value + '$';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createSalesChart(dtc) {
+            var ctx = document.getElementById('salesChart');
+            if (!ctx) return;
+
+            salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dtc.dates,
+                    datasets: [{
+                        label: 'Net Sales',
+                        data: dtc.netSales,
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0
