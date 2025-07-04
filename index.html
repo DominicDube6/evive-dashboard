@@ -247,7 +247,7 @@
             </div>
         </div>
 
-<!-- DTC Performance Section -->
+        <!-- DTC Performance Section -->
         <div class="section-card p-6 mb-8">
             <h2 class="text-2xl font-bold mb-6 section-title">📈 DTC Performance</h2>
             
@@ -258,10 +258,10 @@
                         <span class="text-2xl">👥</span>
                     </div>
                     <div class="flex items-baseline justify-between mb-1">
-                        <span class="text-3xl font-bold text-gray-900" data-net-sub-value>Loading...</span>
+                        <span class="text-3xl font-bold text-gray-900" data-net-sub-value>-7</span>
                         <span class="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">Target: 50</span>
                     </div>
-                    <div class="text-sm text-red-600 font-medium" data-sub-performance>Loading...</div>
+                    <div class="text-sm text-red-600 font-medium" data-sub-performance>-114% vs target</div>
                 </div>
                 
                 <div class="kpi-card p-4 positive" data-kpi="weekProfit">
@@ -269,7 +269,7 @@
                         <h3 class="text-sm font-semibold text-gray-600 uppercase">Profit Période</h3>
                         <span class="text-2xl">💸</span>
                     </div>
-                    <div class="text-3xl font-bold text-gray-900 mb-1">Loading...</div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">50k$</div>
                     <div class="text-sm text-green-600 font-medium">Période sélectionnée</div>
                 </div>
                 
@@ -278,8 +278,8 @@
                         <h3 class="text-sm font-semibold text-gray-600 uppercase">Meilleure Journée</h3>
                         <span class="text-2xl">🚀</span>
                     </div>
-                    <div class="text-3xl font-bold text-gray-900 mb-1" data-best-amount>Loading...</div>
-                    <div class="text-sm text-green-600 font-medium" data-best-day>Loading...</div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1" data-best-amount>79k$</div>
+                    <div class="text-sm text-green-600 font-medium" data-best-day>2025-06-25</div>
                 </div>
                 
                 <div class="kpi-card p-4 neutral" data-kpi="avgDiscount">
@@ -287,7 +287,7 @@
                         <h3 class="text-sm font-semibold text-gray-600 uppercase">Discount Moyen</h3>
                         <span class="text-2xl">🏷️</span>
                     </div>
-                    <div class="text-3xl font-bold text-gray-900 mb-1">Loading...</div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">27%</div>
                     <div class="text-sm text-gray-600 font-medium">Période sélectionnée</div>
                 </div>
                 
@@ -296,10 +296,11 @@
                         <h3 class="text-sm font-semibold text-gray-600 uppercase">nCAC Moyen</h3>
                         <span class="text-2xl">💰</span>
                     </div>
-                    <div class="text-3xl font-bold text-gray-900 mb-1">Loading...</div>
-                    <div class="text-sm text-red-600 font-medium" data-ncac-performance">Loading...</div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">80$</div>
+                    <div class="text-sm text-red-600 font-medium" data-ncac-performance">+33% au-dessus du target</div>
                 </div>
             </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="chart-container">
                     <h3 class="text-lg font-bold text-gray-800 mb-4">Ventes & Profit</h3>
@@ -874,31 +875,20 @@
                 var ncacEl = document.querySelector('[data-kpi="avgNCAC"] .text-3xl');
                 if (ncacEl) ncacEl.textContent = Math.round(avgNCAC) + '$';
                 
-             var ncacTarget = 60;
-var ncacPerformance = Math.round(((avgNCAC - ncacTarget) / ncacTarget) * 100);
-var ncacPerformanceEl = document.querySelector('[data-ncac-performance]');
-
-// Debug logging
-console.log('=== nCAC DEBUG ===');
-console.log('Average nCAC:', avgNCAC);
-console.log('Target:', ncacTarget);
-console.log('Performance calculation:', ((avgNCAC - ncacTarget) / ncacTarget) * 100);
-console.log('Rounded performance:', ncacPerformance);
-
-if (ncacPerformanceEl) {
-    var isAboveTarget = avgNCAC > ncacTarget;
-    if (isAboveTarget) {
-        ncacPerformanceEl.textContent = '+' + Math.abs(ncacPerformance) + '% au-dessus du target';
-        ncacPerformanceEl.className = 'text-sm text-red-600 font-medium';
-    } else {
-        ncacPerformanceEl.textContent = Math.abs(ncacPerformance) + '% en-dessous du target';
-        ncacPerformanceEl.className = 'text-sm text-green-600 font-medium';
-    }
-}
-                    
-}
-            
-            
+                var ncacTarget = 60;
+                var ncacPerformance = Math.round(((avgNCAC - ncacTarget) / ncacTarget) * 100);
+                var ncacPerformanceEl = document.querySelector('[data-ncac-performance]');
+                if (ncacPerformanceEl) {
+                    var isAboveTarget = avgNCAC > ncacTarget;
+                    if (isAboveTarget) {
+                        ncacPerformanceEl.textContent = '+' + ncacPerformance + '% au-dessus du target';
+                        ncacPerformanceEl.className = 'text-sm text-red-600 font-medium';
+                    } else {
+                        ncacPerformanceEl.textContent = ncacPerformance + '% en-dessous du target';
+                        ncacPerformanceEl.className = 'text-sm text-green-600 font-medium';
+                    }
+                }
+            }
 
             var netSubChange = 0;
             if (filteredKlaviyo.length > 0) {
@@ -1044,12 +1034,12 @@ if (ncacPerformanceEl) {
                     creditDateEl.textContent = 'Données les plus récentes';
                 }
             }
-var weekRangeEl = document.querySelector('[data-week-range]');
+
+            var weekRangeEl = document.querySelector('[data-week-range]');
             if (weekRangeEl) {
                 weekRangeEl.innerHTML = '<span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>Période du ' + currentStartDate + ' au ' + currentEndDate;
             }
         }
-        
 
         function updateCharts(dtc) {
             if (typeof Chart === 'undefined') return;
