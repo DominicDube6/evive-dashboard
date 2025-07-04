@@ -897,7 +897,7 @@ if (ncacPerformanceEl) {
 }
                     
 }
-            }
+            
             
 
             var netSubChange = 0;
@@ -1044,11 +1044,11 @@ if (ncacPerformanceEl) {
                     creditDateEl.textContent = 'Données les plus récentes';
                 }
             }
-
-            var weekRangeEl = document.querySelector('[data-week-range]');
+var weekRangeEl = document.querySelector('[data-week-range]');
             if (weekRangeEl) {
                 weekRangeEl.innerHTML = '<span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>Période du ' + currentStartDate + ' au ' + currentEndDate;
-            
+            }
+        }
         
 
         function updateCharts(dtc) {
