@@ -875,20 +875,27 @@
                 var ncacEl = document.querySelector('[data-kpi="avgNCAC"] .text-3xl');
                 if (ncacEl) ncacEl.textContent = Math.round(avgNCAC) + '$';
                 
-                var ncacTarget = 60;
-                var ncacPerformance = Math.round(((avgNCAC - ncacTarget) / ncacTarget) * 100);
-                var ncacPerformanceEl = document.querySelector('[data-ncac-performance]');
-                if (ncacPerformanceEl) {
-                    var isAboveTarget = avgNCAC > ncacTarget;
-                    if (isAboveTarget) {
-                        ncacPerformanceEl.textContent = '+' + ncacPerformance + '% au-dessus du target';
-                        ncacPerformanceEl.className = 'text-sm text-red-600 font-medium';
-                    } else {
-                        ncacPerformanceEl.textContent = ncacPerformance + '% en-dessous du target';
-                        ncacPerformanceEl.className = 'text-sm text-green-600 font-medium';
-                    }
-                }
-            }
+             var ncacTarget = 60;
+var ncacPerformance = Math.round(((avgNCAC - ncacTarget) / ncacTarget) * 100);
+var ncacPerformanceEl = document.querySelector('[data-ncac-performance]');
+
+// Debug logging
+console.log('=== nCAC DEBUG ===');
+console.log('Average nCAC:', avgNCAC);
+console.log('Target:', ncacTarget);
+console.log('Performance calculation:', ((avgNCAC - ncacTarget) / ncacTarget) * 100);
+console.log('Rounded performance:', ncacPerformance);
+
+if (ncacPerformanceEl) {
+    var isAboveTarget = avgNCAC > ncacTarget;
+    if (isAboveTarget) {
+        ncacPerformanceEl.textContent = '+' + Math.abs(ncacPerformance) + '% au-dessus du target';
+        ncacPerformanceEl.className = 'text-sm text-red-600 font-medium';
+    } else {
+        ncacPerformanceEl.textContent = Math.abs(ncacPerformance) + '% en-dessous du target';
+        ncacPerformanceEl.className = 'text-sm text-green-600 font-medium';
+    }
+}
 
             var netSubChange = 0;
             if (filteredKlaviyo.length > 0) {
