@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Evive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        :root {
+            --primary-accent: #AC2B63;
+            --secondary-accent: #89D6D1;
+            --background-main: #FDF4E6;
+            --background-cards: #E9F8F8;
+            --highlight-soft: #E6D3E8;
+            --text-primary: #333333;
+            --text-muted: #777777;
+            --success: #6ABF69;
+            --danger: #E03E3E;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background-main);
+            color: var(--text-primary);
+        }
+        
+        .kpi-card {
+            transition: all 0.3s ease;
+            background: var(--background-cards);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(172, 43, 99, 0.1);
+            border: 1px solid rgba(137, 214, 209, 0.2);
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(172, 43, 99, 0.15);
+            border-color: var(--secondary-accent);
+        }
+        
+        .positive { 
+            border-left: 4px solid var(--success);
+        }
+        .negative { 
+            border-left: 4px solid var(--danger);
+        }
+        .neutral {
+            border-left: 4px solid var(--text-muted);
+        }
+        .info {
+            border-left: 4px solid var(--secondary-accent);
+        }
+        .draft {
+            border-left: 4px solid var(--primary-accent);
+            background: var(--highlight-soft);
+            opacity: 0.9;
+        }
+        
+        .chart-container {
+            background: var(--background-cards);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(172, 43, 99, 0.1);
+            border: 1px solid rgba(137, 214, 209, 0.2);
+        }
+        
+        .section-title {
+            border-bottom: 2px solid var(--secondary-accent);
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+        
+        .section-card {
+            background: var(--background-cards);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(172, 43, 99, 0.1);
+            border: 1px solid rgba(137, 214, 209, 0.2);
+        }
+        
+        .draft-badge {
+            background: linear-gradient(45deg, var(--primary-accent), #D63384);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .evive-button {
+            background: var(--primary-accent);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .evive-button:hover {
+            background: #8B1538;
+            transform: translateY(-1px);
+        }
+
+        .evive-button-secondary {
+            background: var(--secondary-accent);
+            color: var(--text-primary);
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .evive-button-secondary:hover {
+            background: #6BC4BE;
+            transform: translateY(-1px);
+        }
+
+        .evive-input {
+            border: 2px solid rgba(137, 214, 209, 0.3);
+            border-radius: 8px;
+            transition: border-color 0.3s ease;
+        }
+
+        .evive-input:focus {
+            border-color: var(--primary-accent);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(172, 43, 99, 0.1);
+        }
+
+        .evive-select {
+            border: 2px solid rgba(137, 214, 209, 0.3);
+            border-radius: 8px;
+            background: var(--background-cards);
+            transition: border-color 0.3s ease;
+        }
+
+        .evive-select:focus {
+            border-color: var(--primary-accent);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(172, 43, 99, 0.1);
+        }
+
+        .logo-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(172, 43, 99, 0.1);
+            border: 1px solid rgba(137, 214, 209, 0.2);
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body style="background-color: var(--background-main);">
+    <div class="min-h-screen p-6">
+        <!-- Logo and Header -->
+        <div class="logo-container text-center">
+            <div class="flex items-center justify-center gap-4">
+                <h1 class="text-6xl font-bold" style="color: var(--text-primary);">evive</h1>
+            </div>
+            <h2 class="text-2xl font-semibold mt-4" style="color: var(--text-muted);">Dashboard</h2>
+            <p class="text-gray-600 flex items-center justify-center gap-2 mt-2" data-week-range>
+                <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: var(--success);"></span>
+                Période du 24-30 juin 2025
+            </p>
+        </div>
+
+        <!-- Date Selection Section -->
+        <div class="section-card p-6 mb-8">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--text-primary);">📅 Sélection de Période</h2>
+            <div class="flex items-center gap-4 flex-wrap">
+                <div class="flex items-center gap-2">
+                    <label class="font-medium" style="color: var(--text-primary);">Du:</label>
+                    <input type="date" id="startDate" class="evive-input px-3 py-2 text-sm">
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="font-medium" style="color: var(--text-primary);">Au:</label>
+                    <input type="date" id="endDate" class="evive-input px-3 py-2 text-sm">
+                </div>
+                <button onclick="updateDashboardRange()" class="evive-button px-4 py-2 rounded font-medium transition-colors">
+                    Mettre à jour
+                </button>
+            </div>
+            <div class="flex gap-2 mt-4">
+                <button onclick="setRange('yesterday')" class="evive-button-secondary px-3 py-1 rounded text-sm transition-colors">Hier</button>
+                <button onclick="setRange('last7')" class="evive-button-secondary px-3 py-1 rounded text-sm transition-colors">7 jours</button>
+                <button onclick="setRange('last30')" class="evive-button-secondary px-3 py-1 rounded text-sm transition-colors">30 jours</button>
+            </div>
+        </div>
+
+        <!-- Cashflow & Credit Section -->
+        <div class="section-card p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6 section-title">💰 Cashflow & Finance</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div class="kpi-card p-4 positive" data-kpi="netCashflow">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Net Cashflow</h3>
+                        <span class="text-xl">💸</span>
+                    </div>
+                    <div class="text-3xl font-bold mb-2" style="color: var(--text-primary);">+125k$</div>
+                    <div class="text-sm font-medium" style="color: var(--success);">Période sélectionnée</div>
+                </div>
+
+                <div class="kpi-card p-4 info">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Autorisé Total</h3>
+                        <span class="text-xl">🏦</span>
+                    </div>
+                    <div class="text-3xl font-bold mb-2" style="color: var(--text-primary);" data-kpi="totalAuthorized">1,666k$</div>
+                    <div class="text-sm font-medium" style="color: var(--secondary-accent);">Crédit disponible</div>
+                </div>
+
+                <div class="kpi-card p-4 neutral">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Utilisé</h3>
+                        <span class="text-xl">📊</span>
+                    </div>
+                    <div class="text-3xl font-bold mb-2" style="color: var(--text-primary);" data-kpi="totalUsed">1,271k$</div>
+                    <div class="text-sm font-medium" style="color: var(--text-muted);" data-kpi="utilizationRate">76.4% d'utilisation</div>
+                </div>
+
+                <div class="kpi-card p-4 positive">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Disponible</h3>
+                        <span class="text-xl">✅</span>
+                    </div>
+                    <div class="text-3xl font-bold mb-2" style="color: var(--text-primary);" data-kpi="availableCredit">395k$</div>
+                    <div class="text-sm font-medium" style="color: var(--success);">Marge restante</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="chart-container">
+                    <h3 class="text-lg font-bold mb-4" style="color: var(--text-primary);">📈 Tendance Cashflow</h3>
+                    <div style="height: 200px;">
+                        <canvas id="cashflowMiniChart"></canvas>
+                    </div>
+                </div>
+
+                <div style="background-color: var(--highlight-soft);" class="rounded-lg p-4">
+                    <h4 class="font-bold mb-3" style="color: var(--text-primary);">🏦 Utilisation Crédit</h4>
+                    <div class="w-full rounded-full h-4 mb-3" style="background-color: rgba(137, 214, 209, 0.3);">
+                        <div class="h-4 rounded-full transition-all duration-1000" style="width: 76.4%; background: linear-gradient(to right, var(--success), var(--primary-accent));" data-utilization-bar></div>
+                    </div>
+                    <div class="text-center text-sm" style="color: var(--text-muted);">
+                        <span class="font-bold" style="color: var(--text-primary);" data-kpi="utilizationRate2">76.4%</span> d'utilisation
+                        <span data-credit-date class="block text-xs mt-1">Données les plus récentes</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DTC Performance Section -->
+        <div class="section-card p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6 section-title">📈 DTC Performance</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                <div class="kpi-card p-4 negative" data-kpi="netSubChange">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Net Subscriber Change</h3>
+                        <span class="text-2xl">👥</span>
+                    </div>
+                    <div class="flex items-baseline justify-between mb-1">
+                        <span class="text-3xl font-bold text-gray-900" data-net-sub-value>-7</span>
+                        <span class="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">Target: 50</span>
+                    </div>
+                    <div class="text-sm text-red-600 font-medium" data-sub-performance>-114% vs target</div>
+                </div>
+                
+                <div class="kpi-card p-4 positive" data-kpi="weekProfit">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Profit Période</h3>
+                        <span class="text-2xl">💸</span>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">50k$</div>
+                    <div class="text-sm text-green-600 font-medium">Période sélectionnée</div>
+                </div>
+                
+                <div class="kpi-card p-4 positive" data-kpi="bestSales">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Meilleure Journée</h3>
+                        <span class="text-2xl">🚀</span>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1" data-best-amount>79k$</div>
+                    <div class="text-sm text-green-600 font-medium" data-best-day>2025-06-25</div>
+                </div>
+                
+                <div class="kpi-card p-4 neutral" data-kpi="avgDiscount">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Discount Moyen</h3>
+                        <span class="text-2xl">🏷️</span>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">27%</div>
+                    <div class="text-sm text-gray-600 font-medium">Période sélectionnée</div>
+                </div>
+                
+                <div class="kpi-card p-4 negative" data-kpi="avgNCAC">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">nCAC Moyen</h3>
+                        <span class="text-2xl">💰</span>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">80$</div>
+                    <div class="text-sm text-red-600 font-medium" id="ncac-performance">Calculating...</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="chart-container">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Ventes & Profit</h3>
+                    <div style="height: 250px;">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">nCAC vs Target (60$)</h3>
+                    <div style="height: 250px;">
+                        <canvas id="ncacChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operations & Logistics Section -->
+        <div class="section-card p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6 section-title">
+                📦 Operations & Logistics
+                <span class="draft-badge">DRAFT</span>
+            </h2>
+            
+            <!-- Product Selection -->
+            <div style="background-color: var(--highlight-soft);" class="rounded-lg p-4 mb-6">
+                <h3 class="font-bold mb-3" style="color: var(--text-primary);">🔍 Sélection Produit</h3>
+                <select id="operationsProduct" class="evive-select text-sm w-full max-w-md px-3 py-2">
+                    <option value="">Sélectionner un produit...</option>
+                    <option value="asana-cad">Asana CAD</option>
+                    <option value="yogi-cad">Yogi CAD</option>
+                    <option value="frappe-fraise-cad">Frappe Fraise CAD</option>
+                    <option value="bites-fraise-cad">Bites Fraise CAD</option>
+                    <option value="bites-bleuet-cad">Bites Bleuet CAD</option>
+                    <option value="mocha-cad">Mocha CAD</option>
+                    <option value="asana-us">Asana US</option>
+                    <option value="yogi-us">Yogi US</option>
+                    <option value="frappe-fraise-us">Frappe Fraise US</option>
+                    <option value="bites-fraise-us">Bites Fraise US</option>
+                    <option value="bites-bleuet-us">Bites Bleuet US</option>
+                    <option value="mocha-us">Mocha US</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+                <div class="kpi-card p-4 draft">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Quality Rate</h3>
+                        <span class="text-xl">✅</span>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-2" data-quality-rate-value>96.9%</div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-500 h-2 rounded-full transition-all duration-1000" style="width: 96.9%" data-quality-rate-bar></div>
+                    </div>
+                </div>
+                
+                <div class="kpi-card p-4 draft">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Cancel Requests</h3>
+                        <span class="text-xl">❌</span>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1" data-cancel-requests-value>146</div>
+                    <div class="text-sm text-gray-600">Période sélectionnée</div>
+                </div>
+
+                <div class="kpi-card p-4 draft">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Inventory (Cases)</h3>
+                        <span class="text-xl">📦</span>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">1,247</div>
+                    <div class="text-sm text-orange-600">Données simulées</div>
+                </div>
+
+                <div class="kpi-card p-4 draft">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Weeks of Stock</h3>
+                        <span class="text-xl">📅</span>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">8.4</div>
+                    <div class="text-sm text-orange-600">Semaines</div>
+                </div>
+
+                <div class="kpi-card p-4 draft">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Order Fulfillment</h3>
+                        <span class="text-xl">🚚</span>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">92%</div>
+                    <div class="text-sm text-orange-600">PO à temps</div>
+                </div>
+
+                <div class="kpi-card p-4 draft">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Logistic Cost</h3>
+                        <span class="text-xl">💰</span>
+                    </div>
+                    <div class="text-2xl font-bold text-gray-900 mb-1">DTC: 22%</div>
+                    <div class="text-sm text-gray-600">CA: 4% | US: 12%</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div style="background-color: var(--highlight-soft);" class="rounded-lg p-4">
+                    <h4 class="font-bold mb-3" style="color: var(--text-primary);">📊 Box Statistics</h4>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium" style="color: var(--text-primary);">Box Shipped</span>
+                            <span class="text-xl font-bold" style="color: var(--secondary-accent);" data-box-shipped-value>0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium" style="color: var(--text-primary);">Bad Boxes</span>
+                            <span class="text-lg font-bold" style="color: var(--danger);" data-bad-boxes-value>0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background-color: var(--highlight-soft);" class="rounded-lg p-4">
+                    <h4 class="font-bold mb-3" style="color: var(--text-primary);">⚠️ Note</h4>
+                    <p class="text-sm" style="color: var(--text-muted);">Les données d'inventaire, semaines de stock et coûts logistiques sont en mode draft. Connexion aux systèmes en cours.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Marketing Section -->
+        <div class="section-card p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6 section-title">📧 Email Marketing (Klaviyo)</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+                <div class="kpi-card p-4 info" data-kpi="campaignSent">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-semibold text-gray-600 uppercase">Campaign Sent</h3>
+                        <span class="text-xl">📤</span>
+                    </div>
+                    <div class="text-2xl font-bold text-gray-900 mb-1">423</div>
+                    <div class="text-xs text-blue-600">Période sélectionnée</div>
+                </div>
+                
+                <div class="kpi-card p-4 positive" data-kpi="campaignOrders">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-semibold text-gray-600 uppercase">Campaign Orders</h3>
+                        <span class="text-xl">🛒</span>
+                    </div>
+                    <div class="text-2xl font-bold text-gray-900 mb-1">48</div>
+                    <div class="text-xs text-green-600 font-medium">11.3% conversion</div>
+                </div>
+                
+                <div class="kpi-card p-4 info" data-kpi="flowSent">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-semibold text-gray-600 uppercase">Flow Sent</h3>
+                        <span class="text-xl">🔄</span>
+                    </div>
+                    <div class="text-2xl font-bold text-gray-900 mb-1">4,311</div>
+                    <div class="text-xs text-blue-600">Automatisé</div>
+                </div>
+                
+                <div class="kpi-card p-4 neutral" data-kpi="flowOrders">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-semibold text-gray-600 uppercase">Flow Orders</h3>
+                        <span class="text-xl">⚙️</span>
+                    </div>
+                    <div class="text-2xl font-bold text-gray-900 mb-1">48</div>
+                    <div class="text-xs text-gray-600 font-medium">1.1% conversion</div>
+                </div>
+
+                <div class="kpi-card p-4 positive" data-kpi="newSubscribers">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-semibold text-gray-600 uppercase">New Subscribers</h3>
+                        <span class="text-xl">✨</span>
+                    </div>
+                    <div class="text-2xl font-bold text-gray-900 mb-1">332</div>
+                    <div class="text-xs text-green-600 font-medium">Période sélectionnée</div>
+                </div>
+                
+                <div class="kpi-card p-4 info">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-semibold text-gray-600 uppercase">Performance</h3>
+                        <span class="text-xl">📊</span>
+                    </div>
+                    <div class="text-lg font-bold text-green-600 mb-1">11.3%</div>
+                    <div class="text-xs text-gray-600">Campaign vs 1.1% Flow</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Retail Canada Section -->
+        <div class="section-card p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6 section-title">
+                🇨🇦 Retail Canada
+                <span class="draft-badge">DRAFT</span>
+            </h2>
+            
+            <!-- Product and Banner Selection -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div style="background-color: var(--highlight-soft);" class="rounded-lg p-4">
+                    <h3 class="font-bold mb-3" style="color: var(--text-primary);">🔍 Sélection Produit</h3>
+                    <select id="retailCanadaProduct" class="evive-select text-sm w-full px-3 py-2">
+                        <option value="">Sélectionner un produit...</option>
+                        <option value="asana-cad">Asana CAD</option>
+                        <option value="yogi-cad">Yogi CAD</option>
+                        <option value="frappe-fraise-cad">Frappe Fraise CAD</option>
+                        <option value="bites-fraise-cad">Bites Fraise CAD</option>
+                        <option value="bites-bleuet-cad">Bites Bleuet CAD</option>
+                        <option value="mocha-cad">Mocha CAD</option>
+                    </select>
+                </div>
+
+                <div style="background-color: var(--highlight-soft);" class="rounded-lg p-4">
+                    <h3 class="font-bold mb-3" style="color: var(--text-primary);">🏪 Sélection Banner</h3>
+                    <select id="retailCanadaBanner" class="evive-select text-sm w-full px-3 py-2">
+                        <option value="">Sélectionner un banner...</option>
+                        <option value="loblaws">Loblaws</option>
+                        <option value="iga">IGA</option>
+                        <option value="metro">Metro</option>
+                        <option value="avril">Avril</option>
+                        <option value="all">ALL</option>
+                        <option value="sof">SOF</option>
+                        <option value="fedcoop">FedCOOP</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="kpi-card p-4 draft">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Store Count</h3>
+                        <span class="text-xl">🏪</span>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">247</div>
+                    <div class="text-sm text-orange-600">Données simulées</div>
+                </div>
+
+                <div class="kpi-card p-4 draft">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Velocities</h3>
+                        <span class="text-xl">⚡</span>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">2.4</div>
+                    <div class="text-sm text-orange-600">Units/semaine</div>
+                </div>
+
+                <div class="kpi-card p-4 draft">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Revenue</h3>
+                        <span class="text-xl">💰</span>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">128k$</div>
+                    <div class="text-sm text-orange-600">Période sélectionnée</div>
+                </div>
+
+                <div class="kpi-card p-4 draft">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Growth</h3>
+                        <span class="text-xl">📈</span>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">+12%</div>
+                    <div class="text-sm text-orange-600">vs période précédente</div>
+                </div>
+            </div>
+
+            <div style="background-color: var(--highlight-soft); border-color: var(--primary-accent);" class="rounded-lg p-4 border">
+                <p class="text-sm" style="color: var(--text-primary);">
+                    ⚠️ <strong>Section en développement:</strong> Les données retail Canada ne sont pas encore connectées. 
+                    Interface prête pour intégration future.
+                </p>
+            </div>
+        </div>
+
+        <!-- Retail USA Section -->
+        <div class="section-card p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6 section-title">
+                🇺🇸 Retail USA
+                <span class="draft-badge">DRAFT</span>
+            </h2>
+            
+            <!-- Product Selection -->
+            <div style="background-color: var(--highlight-soft);" class="rounded-lg p-4 mb-6">
+                <h3 class="font-bold mb-3" style="color: var(--text-primary);">🔍 Sélection Produit</h3>
+                <select id="retailUSAProduct" class="evive-select text-sm w-full max-w-md px-3 py-2">
+                    <option value="">Sélectionner un produit...</option>
+                    <option value="asana-us">Asana US</option>
+                    <option value="yogi-us">Yogi US</option>
+                    <option value="frappe-fraise-us">Frappe Fraise US</option>
+                    <option value="bites-fraise-us">Bites Fraise US</option>
+                    <option value="bites-bleuet-us">Bites Bleuet US</option>
+                    <option value="mocha-us">Mocha US</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="kpi-card p-4 draft">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Store Count</h3>
+                        <span class="text-xl">🏪</span>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">89</div>
+                    <div class="text-sm text-orange-600">Données simulées</div>
+                </div>
+
+                <div class="kpi-card p-4 draft">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Velocities</h3>
+                        <span class="text-xl">⚡</span>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">1.8</div>
+                    <div class="text-sm text-orange-600">Units/semaine</div>
+                </div>
+
+                <div class="kpi-card p-4 draft">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Revenue</h3>
+                        <span class="text-xl">💰</span>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">67k$</div>
+                    <div class="text-sm text-orange-600">Période sélectionnée</div>
+                </div>
+
+                <div class="kpi-card p-4 draft">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-600 uppercase">Growth</h3>
+                        <span class="text-xl">📈</span>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900 mb-1">+8%</div>
+                    <div class="text-sm text-orange-600">vs période précédente</div>
+                </div>
+            </div>
+
+            <div style="background-color: var(--highlight-soft); border-color: var(--primary-accent);" class="rounded-lg p-4 border">
+                <p class="text-sm" style="color: var(--text-primary);">
+                    ⚠️ <strong>Section en développement:</strong> Les données retail USA ne sont pas encore connectées. 
+                    Interface prête pour intégration future.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var DATA_URL = 'https://api.jsonbin.io/v3/b/6867df208a456b7966bb45fb/latest';
+        var salesChart = null;
+        var ncacChart = null;
+        var cashflowMiniChart = null;
+        var allData = null;
+        var currentStartDate = null;
+        var currentEndDate = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            setInterval(loadData, 300000);
+            setupDraftInteractions();
+        });
+
+        function setupDraftInteractions() {
+            // Add event listeners for draft sections
+            document.getElementById('operationsProduct').addEventListener('change', function() {
+                if (this.value) {
+                    // Simulate data update for selected product
+                    updateOperationsKPIs(this.value);
+                }
+            });
+
+            document.getElementById('retailCanadaProduct').addEventListener('change', function() {
+                if (this.value) {
+                    updateRetailCanadaKPIs(this.value);
+                }
+            });
+
+            document.getElementById('retailCanadaBanner').addEventListener('change', function() {
+                if (this.value) {
+                    updateRetailCanadaKPIs(document.getElementById('retailCanadaProduct').value, this.value);
+                }
+            });
+
+            document.getElementById('retailUSAProduct').addEventListener('change', function() {
+                if (this.value) {
+                    updateRetailUSAKPIs(this.value);
+                }
+            });
+        }
+
+        function updateOperationsKPIs(product) {
+            // Simulate different inventory levels based on product
+            var inventoryData = {
+                'asana-cad': { cases: 1247, weeks: 8.4 },
+                'yogi-cad': { cases: 890, weeks: 6.2 },
+                'frappe-fraise-cad': { cases: 1560, weeks: 11.3 }
+                // Add more products as needed
+            };
+
+            var data = inventoryData[product] || { cases: 1000, weeks: 7.5 };
+            
+            // Update inventory display
+            var inventoryEl = document.querySelector('.kpi-card.draft .text-3xl:contains("1,247")');
+            // Note: This is simplified - in reality you'd need proper selectors
+        }
+
+        function updateRetailCanadaKPIs(product, banner) {
+            // Simulate retail data updates
+            console.log('Updating Retail Canada for:', product, banner);
+        }
+
+        function updateRetailUSAKPIs(product) {
+            // Simulate retail USA data updates
+            console.log('Updating Retail USA for:', product);
+        }
+
+        function loadData() {
+            fetch(DATA_URL)
+                .then(function(response) {
+                    console.log('Fetch response status:', response.status);
+                    return response.json();
+                })
+                .then(function(data) {
+                    console.log('Raw data received:', data);
+                    console.log('Record data:', data.record);
+                    allData = data.record;
+                    setDefaultDateRange();
+                    updateDashboard(allData);
+                })
+                .catch(function(error) {
+                    console.log('Fetch error:', error);
+                    console.log('Using default data');
+                    useDefaultData();
+                });
+        }
+
+        function useDefaultData() {
+            allData = {
+                dtc: {
+                    daily: [
+                        { date: '2025-06-30', netSales: 13367, profit: 177, nCAC: 88, discount: 0.25 },
+                        { date: '2025-07-01', netSales: 15000, profit: 250, nCAC: 85, discount: 0.25 }
+                    ],
+                    netSubChange: -7
+                },
+                cashflow: {
+                    daily: [
+                        { date: '2025-06-30', netCashflow: 45000 },
+                        { date: '2025-07-01', netCashflow: 80000 }
+                    ],
+                    bankPosition: {
+                        totalAuthorized: 1665900,
+                        totalUsed: 1270900,
+                        availableCredit: 395000,
+                        utilizationRate: 0.764
+                    }
+                }
+            };
+            setDefaultDateRange();
+            updateDashboard(allData);
+        }
+
+        function setDefaultDateRange() {
+            var today = new Date();
+            var weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+            
+            currentStartDate = formatDateForInput(weekAgo);
+            currentEndDate = formatDateForInput(today);
+            
+            document.getElementById('startDate').value = currentStartDate;
+            document.getElementById('endDate').value = currentEndDate;
+        }
+
+        function formatDateForInput(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function setRange(preset) {
+            var today = new Date();
+            var startDate, endDate = today;
+            
+            switch(preset) {
+                case 'yesterday':
+                    startDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+                    endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+                    break;
+                case 'last7':
+                    startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    break;
+                case 'last30':
+                    startDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+                    break;
+            }
+            
+            document.getElementById('startDate').value = formatDateForInput(startDate);
+            document.getElementById('endDate').value = formatDateForInput(endDate);
+            updateDashboardRange();
+        }
+
+        function updateDashboardRange() {
+            var startDate = document.getElementById('startDate').value;
+            var endDate = document.getElementById('endDate').value;
+            
+            if (!startDate || !endDate) {
+                alert('Veuillez sélectionner une date de début et de fin');
+                return;
+            }
+            
+            currentStartDate = startDate;
+            currentEndDate = endDate;
+            
+            if (allData) {
+                updateDashboard(allData);
+            }
+        }
+
+        function filterDataByDateRange(dailyData, startDate, endDate) {
+            if (!dailyData || !Array.isArray(dailyData)) return [];
+            
+            return dailyData.filter(function(item) {
+                if (!item.date) return false;
+                var itemDate = item.date;
+                return itemDate >= startDate && itemDate <= endDate;
+            });
+        }
+
+        function sumArrayValues(arr, field) {
+            return arr.reduce(function(sum, item) {
+                return sum + (parseFloat(item[field]) || 0);
+            }, 0);
+        }
+
+        function updateDashboard(data) {
+            updateKPIs(data);
+            
+            var filteredDTC = filterDataByDateRange(data.dtc && data.dtc.daily, currentStartDate, currentEndDate);
+            var chartData = {
+                dates: filteredDTC.map(function(item) { return item.date; }),
+                netSales: filteredDTC.map(function(item) { return item.netSales; }),
+                profit: filteredDTC.map(function(item) { return item.profit; }),
+                nCAC: filteredDTC.map(function(item) { return item.nCAC; })
+            };
+            
+            updateCharts(chartData);
+            updateCashflowChart(data);
+        }
+
+        function updateKPIs(data) {
+            var filteredDTC = filterDataByDateRange(data.dtc && data.dtc.daily, currentStartDate, currentEndDate);
+            var filteredKlaviyo = filterDataByDateRange(data.klaviyo && data.klaviyo.daily, currentStartDate, currentEndDate);
+            var filteredCashflow = filterDataByDateRange(data.cashflow && data.cashflow.daily, currentStartDate, currentEndDate);
+            var filteredOperations = filterDataByDateRange(data.operations && data.operations.daily, currentStartDate, currentEndDate);
+
+            if (filteredDTC.length > 0) {
+                var totalProfit = sumArrayValues(filteredDTC, 'profit');
+                var avgDiscount = filteredDTC.reduce(function(sum, item) { 
+                    return sum + ((item.discount || 0) * 100); 
+                }, 0) / filteredDTC.length;
+                
+                // Debug nCAC calculation
+                console.log('Filtered DTC data:', filteredDTC);
+                var ncacSum = filteredDTC.reduce(function(sum, item) { 
+                    console.log('nCAC value for', item.date, ':', item.nCAC);
+                    return sum + (item.nCAC || 0); 
+                }, 0);
+                var avgNCAC = ncacSum / filteredDTC.length;
+                console.log('Average nCAC calculated:', avgNCAC);
+                
+                var maxSales = Math.max.apply(Math, filteredDTC.map(function(item) { 
+                    return item.netSales || 0; 
+                }));
+                var maxIndex = filteredDTC.findIndex(function(item) { 
+                    return item.netSales === maxSales; 
+                });
+                var bestDay = maxIndex >= 0 ? filteredDTC[maxIndex].date : '';
+
+                var profitEl = document.querySelector('[data-kpi="weekProfit"] .text-3xl');
+                if (profitEl) profitEl.textContent = Math.round(totalProfit / 1000) + 'k$';
+
+                var bestAmountEl = document.querySelector('[data-best-amount]');
+                if (bestAmountEl) bestAmountEl.textContent = Math.round(maxSales / 1000) + 'k$';
+
+                var bestDayEl = document.querySelector('[data-best-day]');
+                if (bestDayEl) bestDayEl.textContent = bestDay;
+
+                var discountEl = document.querySelector('[data-kpi="avgDiscount"] .text-3xl');
+                if (discountEl) discountEl.textContent = Math.round(avgDiscount) + '%';
+
+                var ncacEl = document.querySelector('[data-kpi="avgNCAC"] .text-3xl');
+                if (ncacEl) ncacEl.textContent = Math.round(avgNCAC) + '$';
+                
+                // Fixed nCAC performance calculation with proper element selection
+                var ncacTarget = 60;
+                var ncacPerformance = Math.round(((avgNCAC - ncacTarget) / ncacTarget) * 100);
+                console.log('nCAC performance calculated:', ncacPerformance, '% (avgNCAC:', avgNCAC, ', target:', ncacTarget, ')');
+                
+                // Use the ID selector instead of data attribute
+                var ncacPerformanceEl = document.getElementById('ncac-performance');
+                console.log('Looking for element with ID ncac-performance:', ncacPerformanceEl);
+                
+                if (ncacPerformanceEl) {
+                    if (avgNCAC > ncacTarget) {
+                        ncacPerformanceEl.textContent = '+' + ncacPerformance + '% au-dessus du target';
+                        ncacPerformanceEl.className = 'text-sm text-red-600 font-medium';
+                    } else {
+                        ncacPerformanceEl.textContent = Math.abs(ncacPerformance) + '% en-dessous du target';
+                        ncacPerformanceEl.className = 'text-sm text-green-600 font-medium';
+                    }
+                    console.log('Updated nCAC performance text to:', ncacPerformanceEl.textContent);
+                } else {
+                    console.log('Could not find nCAC performance element with ID ncac-performance');
+                    
+                    // Try alternative selectors as fallback
+                    var altEl = document.querySelector('.text-sm.text-red-600.font-medium');
+                    console.log('Trying alternative selector:', altEl);
+                    
+                    var altEl2 = document.querySelector('[data-kpi="avgNCAC"] .text-sm');
+                    console.log('Trying avgNCAC card selector:', altEl2);
+                }
+                
+                // Also update the card class based on performance
+                var ncacCard = document.querySelector('[data-kpi="avgNCAC"]');
+                if (ncacCard) {
+                    if (avgNCAC > ncacTarget) {
+                        ncacCard.className = 'kpi-card p-4 negative';
+                    } else {
+                        ncacCard.className = 'kpi-card p-4 positive';
+                    }
+                }
+            }
+
+            var netSubChange = 0;
+            if (filteredKlaviyo.length > 0) {
+                netSubChange = sumArrayValues(filteredKlaviyo, 'newSubscribers');
+            } else if (data.dtc && data.dtc.netSubChange !== undefined) {
+                netSubChange = data.dtc.netSubChange;
+            }
+            
+            var netSubEl = document.querySelector('[data-net-sub-value]');
+            var subPerformanceEl = document.querySelector('[data-sub-performance]');
+            var netSubCard = document.querySelector('[data-kpi="netSubChange"]');
+            var targetDisplayEl = document.querySelector('[data-kpi="netSubChange"] .text-sm.bg-gray-100');
+            
+            if (netSubEl) netSubEl.textContent = netSubChange;
+            
+            var dailyTarget = 50;
+            var startDate = new Date(currentStartDate);
+            var endDate = new Date(currentEndDate);
+            var daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+            var target = dailyTarget * daysDiff;
+            
+            if (targetDisplayEl) {
+                targetDisplayEl.textContent = 'Target: ' + target + ' (' + daysDiff + ' days)';
+            }
+            
+            var performance = Math.round(((netSubChange - target) / target) * 100);
+            var isPositive = netSubChange >= target;
+            
+            if (subPerformanceEl) {
+                subPerformanceEl.textContent = (isPositive ? '+' : '') + performance + '% vs target';
+                subPerformanceEl.className = isPositive ? 
+                    'text-sm text-green-600 font-medium' : 'text-sm text-red-600 font-medium';
+            }
+            
+            if (netSubCard) {
+                netSubCard.className = isPositive ? 
+                    'kpi-card p-4 positive' : 'kpi-card p-4 negative';
+            }
+
+            if (filteredKlaviyo.length > 0) {
+                var totalCampaignSent = sumArrayValues(filteredKlaviyo, 'campaignSent');
+                var totalCampaignOrders = sumArrayValues(filteredKlaviyo, 'campaignOrders');
+                var totalFlowSent = sumArrayValues(filteredKlaviyo, 'flowSent');
+                var totalFlowOrders = sumArrayValues(filteredKlaviyo, 'flowOrders');
+                var totalNewSubs = sumArrayValues(filteredKlaviyo, 'newSubscribers');
+
+                var campaignSentEl = document.querySelector('[data-kpi="campaignSent"] .text-2xl');
+                if (campaignSentEl) campaignSentEl.textContent = totalCampaignSent.toLocaleString();
+
+                var campaignOrdersEl = document.querySelector('[data-kpi="campaignOrders"] .text-2xl');
+                if (campaignOrdersEl) campaignOrdersEl.textContent = totalCampaignOrders;
+
+                var flowSentEl = document.querySelector('[data-kpi="flowSent"] .text-2xl');
+                if (flowSentEl) flowSentEl.textContent = totalFlowSent.toLocaleString();
+
+                var flowOrdersEl = document.querySelector('[data-kpi="flowOrders"] .text-2xl');
+                if (flowOrdersEl) flowOrdersEl.textContent = totalFlowOrders;
+
+                var newSubsEl = document.querySelector('[data-kpi="newSubscribers"] .text-2xl');
+                if (newSubsEl) newSubsEl.textContent = totalNewSubs;
+            }
+
+            if (filteredCashflow.length > 0) {
+                var totalNetCashflow = sumArrayValues(filteredCashflow, 'netCashflow');
+                
+                var netCashflowEl = document.querySelector('[data-kpi="netCashflow"] .text-3xl');
+                if (netCashflowEl) {
+                    var sign = totalNetCashflow >= 0 ? '+' : '';
+                    netCashflowEl.textContent = sign + Math.round(totalNetCashflow / 1000) + 'k$';
+                    
+                    var cardEl = netCashflowEl.closest('.kpi-card');
+                    if (cardEl) {
+                        cardEl.className = totalNetCashflow >= 0 ? 
+                            'kpi-card p-4 positive' : 'kpi-card p-4 negative';
+                    }
+                }
+            }
+
+            if (filteredOperations.length > 0) {
+                var totalBoxShipped = sumArrayValues(filteredOperations, 'boxShipped');
+                var totalBadBoxes = sumArrayValues(filteredOperations, 'badBoxes');
+                var totalCancelRequests = sumArrayValues(filteredOperations, 'cancelRequests');
+                
+                var totalBoxes = totalBoxShipped + totalBadBoxes;
+                var qualityRate = totalBoxes > 0 ? (totalBoxShipped / totalBoxes) : 0;
+
+                var boxShippedEl = document.querySelector('[data-box-shipped-value]');
+                if (boxShippedEl) boxShippedEl.textContent = totalBoxShipped;
+
+                var badBoxesEl = document.querySelector('[data-bad-boxes-value]');
+                if (badBoxesEl) badBoxesEl.textContent = totalBadBoxes;
+
+                var qualityRateEl = document.querySelector('[data-quality-rate-value]');
+                if (qualityRateEl) qualityRateEl.textContent = (qualityRate * 100).toFixed(1) + '%';
+
+                var qualityBarEl = document.querySelector('[data-quality-rate-bar]');
+                if (qualityBarEl) qualityBarEl.style.width = (qualityRate * 100) + '%';
+
+                var cancelRequestsEl = document.querySelector('[data-cancel-requests-value]');
+                if (cancelRequestsEl) cancelRequestsEl.textContent = totalCancelRequests;
+            } else {
+                var boxShippedEl = document.querySelector('[data-box-shipped-value]');
+                if (boxShippedEl) boxShippedEl.textContent = '0';
+
+                var badBoxesEl = document.querySelector('[data-bad-boxes-value]');
+                if (badBoxesEl) badBoxesEl.textContent = '0';
+
+                var qualityRateEl = document.querySelector('[data-quality-rate-value]');
+                if (qualityRateEl) qualityRateEl.textContent = '0%';
+
+                var qualityBarEl = document.querySelector('[data-quality-rate-bar]');
+                if (qualityBarEl) qualityBarEl.style.width = '0%';
+
+                var cancelRequestsEl = document.querySelector('[data-cancel-requests-value]');
+                if (cancelRequestsEl) cancelRequestsEl.textContent = '0';
+            }
+
+            if (data.cashflow && data.cashflow.bankPosition) {
+                var bankPos = data.cashflow.bankPosition;
+                
+                var availableCreditEl = document.querySelector('[data-kpi="availableCredit"]');
+                if (availableCreditEl) availableCreditEl.textContent = Math.round(bankPos.availableCredit / 1000) + 'k$';
+
+                var totalAuthorizedEl = document.querySelector('[data-kpi="totalAuthorized"]');
+                if (totalAuthorizedEl) totalAuthorizedEl.textContent = Math.round(bankPos.totalAuthorized / 1000) + 'k$';
+
+                var totalUsedEl = document.querySelector('[data-kpi="totalUsed"]');
+                if (totalUsedEl) totalUsedEl.textContent = Math.round(bankPos.totalUsed / 1000) + 'k$';
+
+                var utilizationRateEl = document.querySelector('[data-kpi="utilizationRate"]');
+                if (utilizationRateEl) utilizationRateEl.textContent = (bankPos.utilizationRate * 100).toFixed(1) + '%';
+
+                var utilizationRateEl2 = document.querySelector('[data-kpi="utilizationRate2"]');
+                if (utilizationRateEl2) utilizationRateEl2.textContent = (bankPos.utilizationRate * 100).toFixed(1) + '%';
+
+                var utilizationBarEl = document.querySelector('[data-utilization-bar]');
+                if (utilizationBarEl) utilizationBarEl.style.width = (bankPos.utilizationRate * 100) + '%';
+                
+                var creditDateEl = document.querySelector('[data-credit-date]');
+                if (creditDateEl && bankPos.asOfDate) {
+                    creditDateEl.textContent = 'Au ' + bankPos.asOfDate;
+                } else if (creditDateEl) {
+                    creditDateEl.textContent = 'Données les plus récentes';
+                }
+            }
+
+            var weekRangeEl = document.querySelector('[data-week-range]');
+            if (weekRangeEl) {
+                weekRangeEl.innerHTML = '<span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>Période du ' + currentStartDate + ' au ' + currentEndDate;
+            }
+        }
+
+        function updateCharts(dtc) {
+            if (typeof Chart === 'undefined') return;
+            if (salesChart) salesChart.destroy();
+            if (ncacChart) ncacChart.destroy();
+            createSalesChart(dtc);
+            createNcacChart(dtc);
+        }
+
+        function updateCashflowChart(data) {
+            if (typeof Chart === 'undefined') return;
+            if (cashflowMiniChart) cashflowMiniChart.destroy();
+            createCashflowChart(data);
+        }
+
+        function createCashflowChart(data) {
+            var ctx = document.getElementById('cashflowMiniChart');
+            if (!ctx || !data.cashflow || !data.cashflow.daily) return;
+
+            var filteredCashflow = filterDataByDateRange(data.cashflow.daily, currentStartDate, currentEndDate);
+            
+            cashflowMiniChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: filteredCashflow.map(function(item) { return item.date; }),
+                    datasets: [{
+                        label: 'Net Cashflow',
+                        data: filteredCashflow.map(function(item) { return item.netCashflow; }),
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintain
