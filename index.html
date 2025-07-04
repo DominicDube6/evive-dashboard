@@ -843,52 +843,63 @@
             var filteredCashflow = filterDataByDateRange(data.cashflow && data.cashflow.daily, currentStartDate, currentEndDate);
             var filteredOperations = filterDataByDateRange(data.operations && data.operations.daily, currentStartDate, currentEndDate);
 
-            if (filteredDTC.length > 0) {
-                var totalProfit = sumArrayValues(filteredDTC, 'profit');
-                var avgDiscount = filteredDTC.reduce(function(sum, item) { 
-                    return sum + ((item.discount || 0) * 100); 
-                }, 0) / filteredDTC.length;
-                var avgNCAC = filteredDTC.reduce(function(sum, item) { 
-                    return sum + (item.nCAC || 0); 
-                }, 0) / filteredDTC.length;
-                
-                var maxSales = Math.max.apply(Math, filteredDTC.map(function(item) { 
-                    return item.netSales || 0; 
-                }));
-                var maxIndex = filteredDTC.findIndex(function(item) { 
-                    return item.netSales === maxSales; 
-                });
-                var bestDay = maxIndex >= 0 ? filteredDTC[maxIndex].date : '';
+        if (filteredDTC.length > 0) {
+    var totalProfit = sumArrayValues(filteredDTC, 'profit');
+    var avgDiscount = filteredDTC.reduce(function(sum, item) { 
+        return sum + ((item.discount || 0) * 100); 
+    }, 0) / filteredDTC.length;
+    
+    // Debug nCAC calculation
+    console.log('Filtered DTC data:', filteredDTC);
+    var ncacSum = filteredDTC.reduce(function(sum, item) { 
+        console.log('nCAC value for', item.date, ':', item.nCAC);
+        return sum + (item.nCAC || 0); 
+    }, 0);
+    var avgNCAC = ncacSum / filteredDTC.length;
+    console.log('Average nCAC calculated:', avgNCAC);
+    
+    var maxSales = Math.max.apply(Math, filteredDTC.map(function(item) { 
+        return item.netSales || 0; 
+    }));
+    var maxIndex = filteredDTC.findIndex(function(item) { 
+        return item.netSales === maxSales; 
+    });
+    var bestDay = maxIndex >= 0 ? filteredDTC[maxIndex].date : '';
 
-                var profitEl = document.querySelector('[data-kpi="weekProfit"] .text-3xl');
-                if (profitEl) profitEl.textContent = Math.round(totalProfit / 1000) + 'k$';
+    var profitEl = document.querySelector('[data-kpi="weekProfit"] .text-3xl');
+    if (profitEl) profitEl.textContent = Math.round(totalProfit / 1000) + 'k$';
 
-                var bestAmountEl = document.querySelector('[data-best-amount]');
-                if (bestAmountEl) bestAmountEl.textContent = Math.round(maxSales / 1000) + 'k$';
+    var bestAmountEl = document.querySelector('[data-best-amount]');
+    if (bestAmountEl) bestAmountEl.textContent = Math.round(maxSales / 1000) + 'k$';
 
-                var bestDayEl = document.querySelector('[data-best-day]');
-                if (bestDayEl) bestDayEl.textContent = bestDay;
+    var bestDayEl = document.querySelector('[data-best-day]');
+    if (bestDayEl) bestDayEl.textContent = bestDay;
 
-                var discountEl = document.querySelector('[data-kpi="avgDiscount"] .text-3xl');
-                if (discountEl) discountEl.textContent = Math.round(avgDiscount) + '%';
+    var discountEl = document.querySelector('[data-kpi="avgDiscount"] .text-3xl');
+    if (discountEl) discountEl.textContent = Math.round(avgDiscount) + '%';
 
-                var ncacEl = document.querySelector('[data-kpi="avgNCAC"] .text-3xl');
-                if (ncacEl) ncacEl.textContent = Math.round(avgNCAC) + '$';
-                
-                var ncacTarget = 60;
-                var ncacPerformance = Math.round(((avgNCAC - ncacTarget) / ncacTarget) * 100);
-                var ncacPerformanceEl = document.querySelector('[data-ncac-performance]');
-                if (ncacPerformanceEl) {
-                    var isAboveTarget = avgNCAC > ncacTarget;
-                    if (isAboveTarget) {
-                        ncacPerformanceEl.textContent = '+' + ncacPerformance + '% au-dessus du target';
-                        ncacPerformanceEl.className = 'text-sm text-red-600 font-medium';
-                    } else {
-                        ncacPerformanceEl.textContent = ncacPerformance + '% en-dessous du target';
-                        ncacPerformanceEl.className = 'text-sm text-green-600 font-medium';
-                    }
-                }
-            }
+    var ncacEl = document.querySelector('[data-kpi="avgNCAC"] .text-3xl');
+    if (ncacEl) ncacEl.textContent = Math.round(avgNCAC) + '$';
+    
+    // Fixed nCAC performance calculation
+    var ncacTarget = 60;
+    var ncacPerformance = Math.round(((avgNCAC - ncacTarget) / ncacTarget) * 100);
+    console.log('nCAC performance calculated:', ncacPerformance, '% (avgNCAC:', avgNCAC, ', target:', ncacTarget, ')');
+    
+    var ncacPerformanceEl = document.querySelector('[data-ncac-performance]');
+    if (ncacPerformanceEl) {
+        if (avgNCAC > ncacTarget) {
+            ncacPerformanceEl.textContent = '+' + ncacPerformance + '% au-dessus du target';
+            ncacPerformanceEl.className = 'text-sm text-red-600 font-medium';
+        } else {
+            ncacPerformanceEl.textContent = Math.abs(ncacPerformance) + '% en-dessous du target';
+            ncacPerformanceEl.className = 'text-sm text-green-600 font-medium';
+        }
+        console.log('Updated nCAC performance text to:', ncacPerformanceEl.textContent);
+    } else {
+        console.log('Could not find nCAC performance element');
+    }
+}
 
             var netSubChange = 0;
             if (filteredKlaviyo.length > 0) {
