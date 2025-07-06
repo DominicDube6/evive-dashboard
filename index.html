@@ -561,7 +561,7 @@
             const filteredKlaviyo = filterDataByDateRange(allData.klaviyo?.daily || []);
             
             updateCashflowKPIs(filteredCashflow);
-            updateDTCKPIs(filteredDTC);
+            updateDTCKPIs(filteredDTC, filteredKlaviyo);
             updateKlaviyoKPIs(filteredKlaviyo);
             updateCharts(filteredDTC, filteredCashflow);
         }
@@ -576,16 +576,23 @@
             // Update bank position if available
             if (allData.cashflow?.bankPosition) {
                 const bank = allData.cashflow.bankPosition;
-                document.getElementById('total-authorized').textContent = `${Math.round(bank.totalAuthorized / 1000)}k$`;
-                document.getElementById('total-used').textContent = `${Math.round(bank.totalUsed / 1000)}k$`;
-                document.getElementById('available-credit').textContent = `${Math.round(bank.availableCredit / 1000)}k$`;
-                document.getElementById('utilization-rate').textContent = `${(bank.utilizationRate * 100).toFixed(1)}% d'utilisation`;
-                document.getElementById('utilization-percentage').textContent = `${(bank.utilizationRate * 100).toFixed(1)}%`;
-                document.getElementById('utilization-bar').style.width = `${bank.utilizationRate * 100}%`;
+                
+                // Ensure the math is correct - recalculate to prevent errors
+                const totalAuth = bank.totalAuthorized || 0;
+                const totalUsed = bank.totalUsed || 0;
+                const availableCredit = totalAuth - totalUsed;
+                const utilizationRate = totalAuth > 0 ? totalUsed / totalAuth : 0;
+                
+                document.getElementById('total-authorized').textContent = `${Math.round(totalAuth / 1000)}k$`;
+                document.getElementById('total-used').textContent = `${Math.round(totalUsed / 1000)}k$`;
+                document.getElementById('available-credit').textContent = `${Math.round(availableCredit / 1000)}k$`;
+                document.getElementById('utilization-rate').textContent = `${(utilizationRate * 100).toFixed(1)}% d'utilisation`;
+                document.getElementById('utilization-percentage').textContent = `${(utilizationRate * 100).toFixed(1)}%`;
+                document.getElementById('utilization-bar').style.width = `${utilizationRate * 100}%`;
             }
         }
 
-        function updateDTCKPIs(data) {
+        function updateDTCKPIs(data, klaviyoData) {
             if (data.length === 0) return;
             
             // Calculate metrics
@@ -620,8 +627,8 @@
                 ncacPerformanceEl.className = 'text-sm text-green-600 font-medium';
             }
             
-            // Update subscriber metrics
-            const netSubChange = allData.dtc?.netSubChange || 0;
+            // Update subscriber metrics - use Klaviyo data for actual subscriber change
+            const netSubChange = sumField(klaviyoData, 'newSubscribers');
             const dailyTarget = 50;
             const daysDiff = Math.ceil((new Date(currentEndDate) - new Date(currentStartDate)) / (1000 * 60 * 60 * 24)) + 1;
             const target = dailyTarget * daysDiff;
